@@ -1,0 +1,43 @@
+name: unify
+spec-version: 0.36.0
+
+default-extensions:
+        - GeneralizedNewtypeDeriving
+        - UndecidableSuperClasses
+        - TypeFamilyDependencies
+        - FunctionalDependencies
+        - MultiParamTypeClasses
+        - UndecidableInstances
+        - ScopedTypeVariables
+        - StandaloneDeriving
+        - OverloadedStrings
+        - FlexibleInstances
+        - TypeApplications
+        - FlexibleContexts
+        - RecordWildCards
+        - PatternSynonyms
+        - ConstraintKinds
+        - TemplateHaskell
+        - KindSignatures
+        - NamedFieldPuns
+        - TypeOperators
+        - DeriveGeneric
+        - TupleSections
+        - TypeFamilies
+        - LambdaCase
+        - RankNTypes
+        - PolyKinds
+        - DataKinds
+        - Arrows
+        - GADTs
+
+dependencies:
+        - effectful-th
+        - containers
+        - effectful
+        - lens
+        - base
+        - text
+
+library:
+        source-dirs: src

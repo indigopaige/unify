@@ -1,0 +1,54 @@
+cabal-version: 1.12
+
+-- This file has been generated from package.yaml by hpack version 0.38.3.
+--
+-- see: https://github.com/sol/hpack
+
+name:           unify
+version:        0.0.0
+build-type:     Simple
+
+library
+  exposed-modules:
+      Unify
+      Unify.Effect.Counter
+      Unify.Effect.Unify
+  hs-source-dirs:
+      src
+  default-extensions:
+      GeneralizedNewtypeDeriving
+      UndecidableSuperClasses
+      TypeFamilyDependencies
+      FunctionalDependencies
+      MultiParamTypeClasses
+      UndecidableInstances
+      ScopedTypeVariables
+      StandaloneDeriving
+      OverloadedStrings
+      FlexibleInstances
+      TypeApplications
+      FlexibleContexts
+      RecordWildCards
+      PatternSynonyms
+      ConstraintKinds
+      TemplateHaskell
+      KindSignatures
+      NamedFieldPuns
+      TypeOperators
+      DeriveGeneric
+      TupleSections
+      TypeFamilies
+      LambdaCase
+      RankNTypes
+      PolyKinds
+      DataKinds
+      Arrows
+      GADTs
+  build-depends:
+      base
+    , containers
+    , effectful
+    , effectful-th
+    , lens
+    , text
+  default-language: Haskell2010
