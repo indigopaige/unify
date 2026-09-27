@@ -28,6 +28,7 @@ import Data.Map (Map)
 import Data.Set (Set)
 import Effectful.TH
 import GHC.Generics
+import Data.Proxy
 import Effectful
 import Unify
 
@@ -54,7 +55,7 @@ instance Substitutable a b => Substitutable a [b] where
 class ( Substitutable a a
       , Substitutable a (Val a)
       , Generic (Val a)
-      , GMatches (Val a) (Rep (Val a))
+      , GMatches (Val a) (Val a) (Rep (Val a))
       , Enum idx
       ) => Unifiable a idx | idx -> a
                            , a -> idx where
@@ -67,54 +68,59 @@ newtype Ignore a = Ignore a
            , Eq
            )
 
-class MatchField v a where
-  matchField :: a -> a -> Maybe [(v, v)]
+class MatchField root v a where
+  matchField :: Proxy root
+             -> a
+             -> a
+             -> Maybe [(v, v)]
 
-instance MatchField v v where
-  matchField x y = Just [(x, y)]
+instance MatchField root v v where
+  matchField _ x y = Just [(x, y)]
 
-instance MatchField v (Ignore a) where
-  matchField _ _ = Just []
+instance MatchField root v a => MatchField root v [a] where
+  matchField a [] [] = Just []
+  matchField a (x : xs) (y : ys) =
+    (<>) <$> matchField a x y
+         <*> matchField a xs ys
+  matchField _ _ _ = Nothing
 
-instance MatchField v a => MatchField v [a] where
-  matchField [] []         = Just []
-  matchField (x : xs) (y : ys) =
-    (<>) <$> matchField @v x y
-         <*> matchField @v xs ys
-  matchField _ _           = Nothing
-
-instance {-# OVERLAPPABLE #-} Eq a => MatchField v a where
-  matchField x y
+instance {-# OVERLAPPABLE #-} Eq a => MatchField root v a where
+  matchField _ x y
     | x == y    = Just []
     | otherwise = Nothing
 
-class GMatches v f where
-  gmatches :: f p
+class GMatches root v f where
+  gmatches :: Proxy root
+           -> f p
            -> f p
            -> Maybe [(v, v)]
 
-instance (GMatches v f, GMatches v g)
-      => GMatches v (f :+: g) where
-  gmatches (L1 x) (L1 y) = gmatches @v x y
-  gmatches (R1 x) (R1 y) = gmatches @v x y
-  gmatches _      _      = Nothing
+instance ( GMatches root v f
+         , GMatches root v g
+         )
+      => GMatches root v (f :+: g) where
+  gmatches p (L1 x) (L1 y) = gmatches p x y
+  gmatches p (R1 x) (R1 y) = gmatches p x y
+  gmatches _ _ _           = Nothing
 
-instance GMatches v f
-      => GMatches v (M1 i c f) where
-  gmatches (M1 x) (M1 y) = gmatches @v x y
+instance GMatches root v f
+      => GMatches root v (M1 i c f) where
+  gmatches p (M1 x) (M1 y) = gmatches p x y
 
-instance (GMatches v f, GMatches v g)
-      => GMatches v (f :*: g) where
-  gmatches (x :*: y) (x' :*: y') =
-    (<>) <$> gmatches @v x x'
-         <*> gmatches @v y y'
+instance ( GMatches root v f
+         , GMatches root v g
+         )
+      => GMatches root v (f :*: g) where
+  gmatches p (x :*: y) (x' :*: y') =
+    (<>) <$> gmatches p x x'
+         <*> gmatches p y y'
 
-instance MatchField v a => GMatches v (K1 i a) where
-  gmatches (K1 x) (K1 y) =
-    matchField @v x y
+instance MatchField root v a
+      => GMatches root v (K1 i a) where
+  gmatches p (K1 x) (K1 y) = matchField p x y
 
-instance GMatches v U1 where
-  gmatches U1 U1 = Just []
+instance GMatches root v U1 where
+  gmatches _ U1 U1 = Just []
 
 matches :: forall a idx.
            Unifiable a idx
@@ -122,7 +128,8 @@ matches :: forall a idx.
         -> Val a
         -> Maybe [(Val a, Val a)]
 
-matches x y = gmatches @(Val a) (from x) (from y)
+matches x y =
+  gmatches (Proxy @(Val a)) (from x) (from y)
 
 data Unify a idx :: Effect where
   Unify :: Unifiable a idx
