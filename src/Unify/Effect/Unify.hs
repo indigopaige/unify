@@ -100,6 +100,10 @@ instance (GMatches v f, GMatches v g)
     (<>) <$> gmatches @v x x'
          <*> gmatches @v y y'
 
+instance MatchField v a => GMatches v (K1 i a) where
+  gmatches (K1 x) (K1 y) =
+    matchField @v x y
+
 instance GMatches v U1 where
   gmatches U1 U1 = Just []
 
