@@ -1,5 +1,6 @@
 module Unify.Effect.Unify
   ( Substitutable(..)
+  , MatchField(..)
   , UnifyError(..)
   , Constraint(..)
   , Unifiable(..)
@@ -61,12 +62,6 @@ class ( Substitutable a a
                            , a -> idx where
   fromIdx :: idx -> Val a
   getVar  :: Val a -> Maybe (Var a)
-
-newtype Ignore a = Ignore a
-  deriving ( Show
-           , Ord
-           , Eq
-           )
 
 class MatchField root v a where
   matchField :: Proxy root
