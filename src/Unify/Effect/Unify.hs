@@ -4,6 +4,7 @@ import Effectful.Writer.Static.Local
 import Effectful.Dispatch.Dynamic
 import qualified Data.Map as Map
 import qualified Data.Set as Set
+import Effectful.Reader.Static
 import Effectful.Error.Static
 
 import Data.Map (Map)
@@ -108,6 +109,15 @@ matches x y =
   gmatches (Proxy @(Val a)) (from x) (from y)
 
 data Unify a idx :: Effect where
+  ListenConstraints :: Unifiable a idx
+                    => m r
+                    -> Unify a idx m (r, Constraints a)
+
+  LocalCtx :: Unifiable a idx
+           => (Context a -> Context a)
+           -> m r
+           -> Unify a idx m r
+
   Unify :: Unifiable a idx
         => Val a
         -> Val a
@@ -116,6 +126,8 @@ data Unify a idx :: Effect where
   Fresh :: Unifiable a idx
         => Unify a idx m (Val a)
 
+  Ctx   :: Unifiable a idx
+        => Unify a idx m (Context a)
 
 makeEffect ''Unify
 
@@ -243,10 +255,13 @@ runUnify a = do
   s <- solve @a @idx mempty cs
   pure $ s .$ r
  where
-    handle =
-      reinterpret runner $ \_ -> \case
-        Unify x y -> tell [Constraint x y]
-        Fresh     -> fromIdx . toEnum <$> freshInt
+   handle = reinterpret runner $ \env -> \case
+     Unify x y           -> tell [Constraint x y]
+     Fresh               -> fromIdx . toEnum <$> freshInt
+     ListenConstraints m -> localSeqUnlift env $ listen . ($ m)
+     LocalCtx f x        -> localSeqUnlift env $ local f . ($ x)
+     Ctx                 -> ask
 
-    runner = runCounter
-           . runWriter @(Constraints a)
+   runner = runCounter
+     . runWriter @(Constraints a)
+     . runReader @(Context a) mempty
