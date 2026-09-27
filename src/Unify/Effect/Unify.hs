@@ -61,11 +61,20 @@ class ( Substitutable a a
   fromIdx :: idx -> Val a
   getVar  :: Val a -> Maybe (Var a)
 
+newtype Ignore a = Ignore a
+  deriving ( Show
+           , Ord
+           , Eq
+           )
+
 class MatchField v a where
   matchField :: a -> a -> Maybe [(v, v)]
 
 instance MatchField v v where
   matchField x y = Just [(x, y)]
+
+instance MatchField v (Ignore a) where
+  matchField _ _ = Just []
 
 instance MatchField v a => MatchField v [a] where
   matchField [] []         = Just []
