@@ -1,23 +1,4 @@
-module Unify.Effect.Unify
-  ( Substitutable(..)
-  , MatchField(..)
-  , UnifyError(..)
-  , Constraint(..)
-  , Unifiable(..)
-  , instantiate
-  , generalize
-  , Scheme(..)
-  , runUnify
-  , Unify
-  , Subst
-  , (<=>)
-  , (<.>)
-  , fresh
-  , Var
-  , Val
-  , mgu
-  )
-where
+module Unify.Effect.Unify where
 
 import Effectful.Writer.Static.Local
 import Effectful.Dispatch.Dynamic
